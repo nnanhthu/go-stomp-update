@@ -7,10 +7,12 @@ import (
 
 // slices used to write frames
 var (
-	colonSlice   = []byte{58}     // colon ':'
-	crlfSlice    = []byte{13, 10} // CR-LF
-	newlineSlice = []byte{10}     // newline (LF)
-	nullSlice    = []byte{0}      // null character
+	colonSlice    = []byte{58}     // colon ':'
+	crlfSlice     = []byte{13, 10} // CR-LF
+	newlineSlice  = []byte{10}     // newline (LF)
+	nullSlice     = []byte{0}      // null character
+	one           = []byte{1}
+	payloadLength = []byte{138}
 )
 
 // Writes STOMP frames to an underlying io.Writer.
@@ -38,6 +40,62 @@ func (w *Writer) Write(f *Frame) error {
 			return err
 		}
 	} else {
+		_, err = w.writer.Write([]byte(one))
+		if err != nil {
+			return err
+		}
+		_, err = w.writer.Write([]byte(payloadLength))
+		if err != nil {
+			return err
+		}
+		_, err = w.writer.Write([]byte(nullSlice))
+		if err != nil {
+			return err
+		}
+		_, err = w.writer.Write([]byte(nullSlice))
+		if err != nil {
+			return err
+		}
+		_, err = w.writer.Write([]byte(nullSlice))
+		if err != nil {
+			return err
+		}
+		_, err = w.writer.Write([]byte(nullSlice))
+		if err != nil {
+			return err
+		}
+		_, err = w.writer.Write([]byte(nullSlice))
+		if err != nil {
+			return err
+		}
+		_, err = w.writer.Write([]byte(nullSlice))
+		if err != nil {
+			return err
+		}
+		_, err = w.writer.Write([]byte(nullSlice))
+		if err != nil {
+			return err
+		}
+		_, err = w.writer.Write([]byte(nullSlice))
+		if err != nil {
+			return err
+		}
+		_, err = w.writer.Write([]byte(nullSlice))
+		if err != nil {
+			return err
+		}
+		_, err = w.writer.Write([]byte(nullSlice))
+		if err != nil {
+			return err
+		}
+		_, err = w.writer.Write([]byte(nullSlice))
+		if err != nil {
+			return err
+		}
+		_, err = w.writer.Write([]byte(nullSlice))
+		if err != nil {
+			return err
+		}
 		_, err = w.writer.Write([]byte(f.Command))
 		if err != nil {
 			return err
