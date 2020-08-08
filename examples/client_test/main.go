@@ -3,9 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
+	"go-stomp-update"
+
+	//"signal"
 	"os"
 
-	"github.com/go-stomp/stomp"
+	//"github.com/drawdy/stomp-ws-go"
+	"github.com/gorilla/websocket"
 )
 
 const defaultPort = ":61613"
@@ -24,6 +28,33 @@ var options []func(*stomp.Conn) error = []func(*stomp.Conn) error{
 
 func main() {
 	flag.Parse()
+	url := "wss://signal-controller-testing.quickom.com/signaling/classroom"
+	token := "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJxa2lkOm5vZGU6bWFzdGVyOmJhZmQ3N2I0LTE2MDQtNDc3Ni04NWI2LWRlMmJlNGIxNTcxZCIsInJvbGUiOiJub2RlIiwicXJDb2RlIjoiNzAxNTE1OTY3ODczNjQ5MjYiLCJleHAiOjE2Mjc1NTU3MjIsImlhdCI6MTU5Njc5NzMyMiwiZGV2aWNlSWQiOiJiYTAzZTYzMS0yYjczLTRlZDUtODI4NC02ZTExYjQ2ZTE4ZjgiLCJqdGkiOiJmNzZiZTRjMi02NjE3LTQ1NWMtYWQzYi1iMzNmYzZkZjcwMjMiLCJyb29tSWQiOiJyb29tOjcwMTUxNTk2Nzg3MzY0OTI2IiwiYXV0aG9yaXRpZXMiOlsiTk9ERSJdfQ.km8DYsKPN6dmqpOwgjgMkuMWKIsR4b97ud2_TiW7Ea8"
+	//channel := "/classroom/room:70151596787364926"
+	//dest := "/classroom/message/room:70151596787364926"
+	//x := signal.NewSignaler(url, nil, token)
+	//err := x.ConnectConn(channel)
+	//url = "wss://192.168.1.248:8080/classroom/" //+ paddedRandomIntn(999) + "/" + uniuri.New() + "/websocket"
+	url = "wss://signal-controller-testing.quickom.com/signaling/classroom/366/piwnsqkn/websocket"
+	netConn, _, err := websocket.DefaultDialer.Dial(url, nil)
+	if err != nil {
+		println(err)
+	}
+	// Now create the stomp connection
+
+	stompConn, err := stomp.Connect(netConn.UnderlyingConn(),
+		stomp.ConnOpt.UseStomp,
+		stomp.ConnOpt.Host(url),
+
+		stomp.ConnOpt.Header("Authorization", token))
+
+	if err != nil {
+		println("cannot connect to server", err.Error())
+	}
+	println(stompConn)
+
+	//err = x.Send(dest,"text/plain",[]byte("Hello"))
+	println(err)
 	if *helpFlag {
 		fmt.Fprintf(os.Stderr, "Usage of %s\n", os.Args[0])
 		flag.PrintDefaults()
