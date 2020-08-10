@@ -6,7 +6,7 @@ package topic
 import (
 	"container/list"
 
-	"github.com/go-stomp/stomp/frame"
+	"go-stomp-update/frame"
 )
 
 // A Topic is used for broadcasting to subscribed clients.

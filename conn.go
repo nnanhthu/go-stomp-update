@@ -9,7 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-stomp/stomp/frame"
+	"go-stomp-update/frame"
+	"github.com/gorilla/websocket"
 )
 
 // Default time span to add to read/write heart-beat timeouts
@@ -22,6 +23,7 @@ const DefaultMsgSendTimeout = 10 * time.Second
 // A Conn is a connection to a STOMP server. Create a Conn using either
 // the Dial or Connect function.
 type Conn struct {
+	wsConn					*websocket.Conn
 	conn                    io.ReadWriteCloser
 	readCh                  chan *frame.Frame
 	writeCh                 chan writeRequest
@@ -42,38 +44,18 @@ type writeRequest struct {
 	C     chan *frame.Frame // response channel
 }
 
-// Dial creates a network connection to a STOMP server and performs
-// the STOMP connect protocol sequence. The network endpoint of the
-// STOMP server is specified by network and addr. STOMP protocol
-// options can be specified in opts.
-func Dial(network, addr string, opts ...func(*Conn) error) (*Conn, error) {
-	c, err := net.Dial(network, addr)
-	if err != nil {
-		return nil, err
-	}
-
-	host, _, err := net.SplitHostPort(c.RemoteAddr().String())
-	if err != nil {
-		c.Close()
-		return nil, err
-	}
-
-	// Add option to set host and make it the first option in list,
-	// so that if host has been explicitly specified it will override.
-	opts = append([](func(*Conn) error){ConnOpt.Host(host)}, opts...)
-
-	return Connect(c, opts...)
-}
-
 // Connect creates a STOMP connection and performs the STOMP connect
 // protocol sequence. The connection to the STOMP server has already
 // been created by the program. The opts parameter provides the
 // opportunity to specify STOMP protocol options.
-func Connect(conn io.ReadWriteCloser, opts ...func(*Conn) error) (*Conn, error) {
-	reader := frame.NewReader(conn)
-	writer := frame.NewWriter(conn)
+func Connect(wsConn *websocket.Conn, opts ...func(*Conn) error) (*Conn, error) {
+
+	conn := wsConn.UnderlyingConn()
+	reader := frame.NewFrameReader(wsConn)
+	writer := frame.NewFrameWriter(wsConn)
 
 	c := &Conn{
+		wsConn: wsConn,
 		conn:       conn,
 		closeMutex: &sync.Mutex{},
 	}
@@ -81,14 +63,6 @@ func Connect(conn io.ReadWriteCloser, opts ...func(*Conn) error) (*Conn, error) 
 	options, err := newConnOptions(c, opts)
 	if err != nil {
 		return nil, err
-	}
-
-	if options.ReadBufferSize > 0 {
-		reader = frame.NewReaderSize(conn, options.ReadBufferSize)
-	}
-
-	if options.WriteBufferSize > 0 {
-		writer = frame.NewWriterSize(conn, options.ReadBufferSize)
 	}
 
 	readChannelCapacity := 20
@@ -131,7 +105,7 @@ func Connect(conn io.ReadWriteCloser, opts ...func(*Conn) error) (*Conn, error) 
 		return nil, err
 	}
 
-	response, err := reader.Read()
+	response, err := reader.ReadWithTimeout(10)
 	if err != nil {
 		return nil, err
 	}
@@ -225,7 +199,7 @@ func (c *Conn) Server() string {
 // readLoop is a goroutine that reads frames from the
 // reader and places them onto a channel for processing
 // by the processLoop goroutine
-func readLoop(c *Conn, reader *frame.Reader) {
+func readLoop(c *Conn, reader *frame.FrameReader) {
 	for {
 		f, err := reader.Read()
 		if err != nil {
@@ -238,7 +212,7 @@ func readLoop(c *Conn, reader *frame.Reader) {
 
 // processLoop is a goroutine that handles io with
 // the server.
-func processLoop(c *Conn, writer *frame.Writer) {
+func processLoop(c *Conn, writer *frame.FrameWriter) {
 	channels := make(map[string]chan *frame.Frame)
 
 	var readTimeoutChannel <-chan time.Time

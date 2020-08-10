@@ -18,7 +18,7 @@ import (
 	"net"
 	"os"
 
-	"github.com/go-stomp/stomp/server"
+	"go-stomp-update/server"
 )
 
 // TODO: experimenting with ways to gracefully shutdown the server,

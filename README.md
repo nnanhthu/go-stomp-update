@@ -14,7 +14,7 @@ Features:
 ## Usage Instructions
 
 ```
-go get github.com/go-stomp/stomp
+go get github.com/nnanhthu/go-stomp-update
 ```
 
 For API documentation, see http://godoc.org/github.com/go-stomp/stomp

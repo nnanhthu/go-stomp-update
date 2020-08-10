@@ -3,8 +3,12 @@ package frame
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"errors"
+	"github.com/gorilla/websocket"
 	"io"
+	"strings"
+	"time"
 )
 
 const (
@@ -142,6 +146,154 @@ func (r *Reader) Read() (*Frame, error) {
 // read one line from input and strip off terminating LF or terminating CR-LF
 func (r *Reader) readLine() (line []byte, err error) {
 	line, err = r.reader.ReadBytes(newline)
+	if err != nil {
+		return
+	}
+
+	switch {
+	case bytes.HasSuffix(line, crlfSlice):
+		line = line[0 : len(line)-len(crlfSlice)]
+	case bytes.HasSuffix(line, newlineSlice):
+		line = line[0 : len(line)-len(newlineSlice)]
+	}
+
+	return
+}
+
+type FrameReader struct {
+	wsConn *websocket.Conn
+}
+
+func NewFrameReader(wsConn *websocket.Conn) *FrameReader {
+	return &FrameReader{wsConn: wsConn}
+}
+
+func (r *FrameReader) ReadWithTimeout(second int) (*Frame, error) {
+	timeout := time.After(5 * time.Second)
+
+	for {
+		select {
+		case <-timeout:
+			return nil, errors.New("timed out")
+		default:
+			f, err := r.Read()
+			if err != nil {
+				return nil, err
+			}
+			if f != nil {
+				return f, nil
+			}
+		}
+	}
+}
+
+func (r *FrameReader) Read() (*Frame, error) {
+	commandSlice, err := r.readLine()
+	if err != nil {
+		return nil, err
+	}
+
+	for len(commandSlice) > 1 && (commandSlice[0] != '[' || commandSlice[len(commandSlice)-1] != ']') {
+		if commandSlice[0] != '[' {
+			commandSlice = commandSlice[1:]
+		}
+		_len := len(commandSlice)
+		if commandSlice[_len-1] != ']' {
+			commandSlice = commandSlice[0 : _len-1]
+		}
+	}
+
+	if len(commandSlice) <= 1 {
+		// received a heart-beat newline char (or cr-lf)
+		return nil, nil
+	}
+
+	var messages []string
+	_ = json.Unmarshal([]byte(commandSlice), &messages)
+
+	if len(messages) < 1 {
+		return nil, nil
+	}
+
+	message := messages[0]
+
+	frames := strings.Split(message, "\n\n")
+	headers := strings.Split(frames[0], "\n")
+
+	// headers[0] : command
+	// herader[1:] : headers
+	// frames[1] : body (maybe)
+
+	command := headers[0]
+
+	f := New(command)
+	//println("RX:", f.Command)
+	switch f.Command {
+	// TODO(jpj): Is it appropriate to perform validation on the
+	// command at this point. Probably better to validate higher up,
+	// this way this type can be useful for any other non-STOMP protocols
+	// which happen to use the same frame format.
+	case CONNECT, STOMP, SEND, SUBSCRIBE,
+		UNSUBSCRIBE, ACK, NACK, BEGIN,
+		COMMIT, ABORT, DISCONNECT, CONNECTED,
+		MESSAGE, RECEIPT, ERROR:
+		// valid command
+	default:
+		return nil, ErrInvalidCommand
+	}
+
+	// read headers
+	for i := 1; i < len(headers); i++ {
+		header := headers[i]
+
+		if len(header) == 0 {
+			// empty line means end of headers
+			break
+		}
+
+		headerSlice := []byte(header)
+
+		index := bytes.IndexByte(headerSlice, colon)
+		if index <= 0 {
+			// colon is missing or header name is zero length
+			return nil, ErrInvalidFrameFormat
+		}
+
+		name, err := unencodeValue(headerSlice[0:index])
+		if err != nil {
+			return nil, err
+		}
+		value, err := unencodeValue(headerSlice[index+1:])
+		if err != nil {
+			return nil, err
+		}
+
+		//println("   ", name, ":", value)
+
+		f.Header.Add(name, value)
+	}
+
+	if len(frames) == 2 {
+		// frames[1] : body
+		body := []byte(frames[1])
+		first := bytes.IndexByte(body, byte('{'))
+		last := bytes.LastIndexByte(body, byte('}'))
+
+		if first < 0 || last < 0 {
+			f.Body = nil
+		} else {
+			f.Body = body[first : last+1]
+		}
+	}
+
+	// pass back frame
+	return f, nil
+}
+
+// read one line from input and strip off terminating LF or terminating CR-LF
+func (r *FrameReader) readLine() (line []byte, err error) {
+	_, line, err = r.wsConn.ReadMessage()
+
 	if err != nil {
 		return
 	}

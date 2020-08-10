@@ -19,7 +19,7 @@ import (
 Version 2:
 ```go
 import (
-    "github.com/go-stomp/stomp"
+    "go-stomp-update"
 )
 ```
 
