@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/nnanhthu/go-stomp-update"
 	"github.com/nnanhthu/go-stomp-update/frame"
 )
 
