@@ -1,7 +1,7 @@
 package stomp
 
 import (
-	"go-stomp-update/frame"
+	"github.com/nnanhthu/go-stomp-update/frame"
 )
 
 // SendOpt contains options for for the Conn.Send and Transaction.Send functions.

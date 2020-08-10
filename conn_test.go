@@ -5,8 +5,8 @@ import (
 	"io"
 	"time"
 
-	"go-stomp-update/frame"
-	"go-stomp-update/testutil"
+	"github.com/nnanhthu/go-stomp-update/frame"
+	"github.com/nnanhthu/go-stomp-update/testutil"
 	. "gopkg.in/check.v1"
 )
 

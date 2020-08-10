@@ -1,7 +1,7 @@
 package queue
 
 import (
-	"go-stomp-update/frame"
+	"github.com/nnanhthu/go-stomp-update/frame"
 	. "gopkg.in/check.v1"
 )
 

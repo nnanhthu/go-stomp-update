@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"go-stomp-update/frame"
 	"github.com/gorilla/websocket"
+	"github.com/nnanhthu/go-stomp-update/frame"
 )
 
 // Default time span to add to read/write heart-beat timeouts
@@ -23,7 +23,7 @@ const DefaultMsgSendTimeout = 10 * time.Second
 // A Conn is a connection to a STOMP server. Create a Conn using either
 // the Dial or Connect function.
 type Conn struct {
-	wsConn					*websocket.Conn
+	wsConn                  *websocket.Conn
 	conn                    io.ReadWriteCloser
 	readCh                  chan *frame.Frame
 	writeCh                 chan writeRequest
@@ -55,7 +55,7 @@ func Connect(wsConn *websocket.Conn, opts ...func(*Conn) error) (*Conn, error) {
 	writer := frame.NewFrameWriter(wsConn)
 
 	c := &Conn{
-		wsConn: wsConn,
+		wsConn:     wsConn,
 		conn:       conn,
 		closeMutex: &sync.Mutex{},
 	}

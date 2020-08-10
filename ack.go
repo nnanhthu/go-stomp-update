@@ -1,7 +1,7 @@
 package stomp
 
 import (
-	"go-stomp-update/frame"
+	"github.com/nnanhthu/go-stomp-update/frame"
 )
 
 // The AckMode type is an enumeration of the acknowledgement modes for a

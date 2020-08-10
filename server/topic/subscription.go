@@ -1,7 +1,7 @@
 package topic
 
 import (
-	"go-stomp-update/frame"
+	"github.com/nnanhthu/go-stomp-update/frame"
 )
 
 // Subscription is the interface that wraps a subscriber to a topic.

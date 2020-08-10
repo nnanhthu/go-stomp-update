@@ -1,7 +1,7 @@
 package queue
 
 import (
-	"go-stomp-update/frame"
+	"github.com/nnanhthu/go-stomp-update/frame"
 )
 
 // Interface for queue storage. The intent is that

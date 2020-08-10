@@ -1,7 +1,7 @@
 package stomp
 
 import (
-	"go-stomp-update/frame"
+	"github.com/nnanhthu/go-stomp-update/frame"
 )
 
 // A Message represents a message received from the STOMP server.

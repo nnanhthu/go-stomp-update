@@ -1,8 +1,7 @@
 package client
 
 import (
-	"go-stomp-update"
-	"go-stomp-update/frame"
+	"github.com/nnanhthu/go-stomp-update/frame"
 	. "gopkg.in/check.v1"
 )
 

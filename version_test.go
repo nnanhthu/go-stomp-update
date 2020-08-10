@@ -3,7 +3,7 @@ package stomp_test
 import (
 	"testing"
 
-	"go-stomp-update"
+	"github.com/nnanhthu/go-stomp-update"
 )
 
 func TestSupportsNack(t *testing.T) {

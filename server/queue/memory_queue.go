@@ -3,7 +3,7 @@ package queue
 import (
 	"container/list"
 
-	"go-stomp-update/frame"
+	"github.com/nnanhthu/go-stomp-update/frame"
 )
 
 // In-memory implementation of the QueueStorage interface.

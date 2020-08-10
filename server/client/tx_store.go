@@ -3,7 +3,7 @@ package client
 import (
 	"container/list"
 
-	"go-stomp-update/frame"
+	"github.com/nnanhthu/go-stomp-update/frame"
 )
 
 type txStore struct {

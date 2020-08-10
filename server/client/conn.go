@@ -8,8 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"go-stomp-update"
-	"go-stomp-update/frame"
+	"github.com/nnanhthu/go-stomp-update"
 )
 
 // Maximum number of pending frames allowed to a client.
