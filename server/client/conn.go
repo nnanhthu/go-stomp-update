@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/nnanhthu/go-stomp-update"
+	"github.com/nnanhthu/go-stomp-update/frame"
 )
 
 // Maximum number of pending frames allowed to a client.
